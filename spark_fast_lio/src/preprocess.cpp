@@ -81,6 +81,10 @@ void Preprocess::process(const sensor_msgs::msg::PointCloud2 &msg, PointCloudXYZ
       velodyne_handler(msg);
       break;
 
+    case RSLIDAR:
+      rslidar_handler(msg);
+      break;
+
     default:
       RCLCPP_FATAL(rclcpp::get_logger("Preprocess"), "Error LiDAR Type");
       break;
@@ -927,4 +931,42 @@ bool Preprocess::edge_jump_judge(const PointCloudXYZI &pl,
   }
 
   return true;
+}
+
+
+void Preprocess::rslidar_handler(const sensor_msgs::msg::PointCloud2 &msg) {
+    pl_surf.clear();
+    pl_corn.clear();
+    pl_full.clear();
+
+    pcl::PointCloud<robosense_ros::Point> pl_orig;
+    pcl::fromROSMsg(msg, pl_orig);
+
+    int plsize = pl_orig.size();
+    if (plsize == 0) return;
+    pl_surf.reserve(plsize);
+
+    double base_time = rclcpp::Time(msg.header.stamp).seconds();
+
+    for (int i = 0; i < plsize; i++) {
+        if (i % point_filter_num != 0) continue;
+
+        double range = pl_orig.points[i].x * pl_orig.points[i].x +
+                       pl_orig.points[i].y * pl_orig.points[i].y +
+                       pl_orig.points[i].z * pl_orig.points[i].z;
+
+        if (range < blind * blind) continue;
+
+        PointType added_pt;
+        added_pt.x         = pl_orig.points[i].x;
+        added_pt.y         = pl_orig.points[i].y;
+        added_pt.z         = pl_orig.points[i].z;
+        added_pt.intensity = pl_orig.points[i].intensity;
+        added_pt.normal_x  = 0;
+        added_pt.normal_y  = 0;
+        added_pt.normal_z  = 0;
+        added_pt.curvature = (float)(pl_orig.points[i].timestamp - base_time) * 1000.0f;
+
+        pl_surf.push_back(added_pt);
+    }
 }
