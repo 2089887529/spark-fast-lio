@@ -3,7 +3,7 @@
     common:
       lid_topic:  "/rslidar_points"
   #    imu_topic:  "/acl_jackal2/imu/data"
-      imu_topic:  "/rslidar_imu_converted"
+      imu_topic:  "/rslidar_imu_data"
       time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
       map_frame: "map"
 
@@ -42,5 +42,5 @@
 
     pcd_save:
       pcd_save_en: true
-      interval: -1                 # how many LiDAR frames saved in each pcd file;
+      interval: 300                 # how many LiDAR frames saved in each pcd file;
                                    # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
